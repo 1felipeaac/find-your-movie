@@ -18,18 +18,18 @@ export function MovieCard({ movie, movieGenres }: MovieCardProps) {
   return (
     <section 
       id="movie-details"
-      className={`max-w-xs mx-auto bg-slate-800 rounded-2xl shadow-xl overflow-hidden text-slate-100 transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+      className={`max-w-2xs mx-auto bg-slate-800 rounded-2xl shadow-xl overflow-hidden text-slate-100 transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl`}
     >
-      <div className="relative w-full max-w-sm bg-slate-900">
+      <div className="relative w-full max-w-xs bg-slate-900">
       
         <img 
           src={`${env.VITE_IMG_URL}${movie.poster_path}`} 
           alt={`Pôster de ${movie.title}`} 
-          className=" w-full h-full object-cover"
+          className="w-full h-full object-cover"
         />
         
 
-        <div className="absolute top-4 right-4 bg-yellow-500 text-slate-900 font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 text-sm">
+        <div className="absolute top-1 right-1 bg-yellow-500 text-slate-900 font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1 text-sm">
           <span>⭐ {movie.vote_average.toFixed(1)}</span>
           <span className="text-xs font-normal opacity-80">({movie.vote_count})</span>
         </div>

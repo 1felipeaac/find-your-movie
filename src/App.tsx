@@ -1,60 +1,129 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-import './App.css'
-import type { Genre, Movie } from './models'
-import { useGenres } from './context/genre-context-data'
-import { popularMoviesForPage } from './services/tmdb'
-import { MovieCard } from './components/movie-cards'
-import { env } from './env'
+import "./App.css";
+import type { Genre, Movie } from "./models";
+import { useGenres } from "./context/genre-context-data";
+import { descobertaDeFilmes } from "./services/tmdb";
+import { MovieCard } from "./components/movie-cards";
+import { env } from "./env";
+import { MovieFilters } from "./components/movie-filters";
 
+interface MovieFiltersProps {
+  minRating: number;
+  genreId: number | "";
+  yearMin: number | "";
+  yearMax: number | "";
+}
 
+interface Payload {
+  page?: number;
+  "vote_average.gte"?: number;
+  with_genres?: number | null;
+  "primary_release_date.gte"?: string;
+  "primary_release_date.lte"?: string;
+  sort_by?: string;
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [movie, setMovie] = useState<Movie | undefined>(undefined)
+  const [count, setCount] = useState(0);
+  const [movie, setMovie] = useState<Movie | undefined>(undefined);
   const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
   const [historyMovie, setHistoryMovie] = useState<string[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const [genreId, setGenreId] = useState<number | "">("");
+  const [minRating, setMinRating] = useState<number>(0);
+  const [yearMin, setYearMin] = useState<number | "">("");
+  const [yearMax, setYearMax] = useState<number | "">("");
 
   const { genres, isLoading } = useGenres();
 
-
-  async function getTrueRandomMovie(){
+  async function sortearFilmePersonalizado(filtros: MovieFiltersProps) {
     try {
-      const randomPage = Math.floor(Math.random() * 500) + 1;
-      const response = await popularMoviesForPage(randomPage);
-      const randomIndex = Math.floor(Math.random() * 20);
-      
-      if (!response) {
-        console.error('No response from popularMoviesForPage');
+      setIsFetching(true);
+
+      const params: Payload = {
+        page: 1,
+        sort_by: "popularity.desc",
+      };
+
+      if (filtros.genreId) {
+        params.with_genres = filtros.genreId;
+      }
+
+      if (filtros.minRating > 0) {
+        params["vote_average.gte"] = filtros.minRating;
+      }
+
+      if (
+        filtros.yearMin &&
+        filtros.yearMax &&
+        filtros.yearMin <= filtros.yearMax
+      ) {
+        params["primary_release_date.gte"] = `${filtros.yearMin}-01-01`;
+        params["primary_release_date.lte"] = `${filtros.yearMax}-12-31`;
+      }
+
+      const initialResponse = await descobertaDeFilmes(params);
+
+      if (!initialResponse) {
+        console.error("No response from descobertaDeFilmes");
         return undefined;
       }
 
-      const sorteado = response.results[randomIndex];
+      const totalPages = Math.min(initialResponse.total_pages, 500);
+
+      const randomPage = Math.floor(Math.random() * totalPages) + 1;
+
+      const finalResponse = await descobertaDeFilmes({
+        ...params,
+        page: randomPage,
+      });
+
+      if (!finalResponse) {
+        console.error("No response from descobertaDeFilmes");
+        return undefined;
+      }
+
+      const randomIndex = Math.floor(
+        Math.random() * finalResponse.results.length,
+      );
+      const sorteado = finalResponse.results[randomIndex];
+
+      setMovie(sorteado);
 
       if (movie) {
         setHistoryMovie((prevHistory) => {
           const novaLista = [...prevHistory, movie.poster_path];
-          return novaLista.slice(-5);
+          return novaLista.slice(-3);
         });
       }
 
       setMovie(sorteado);
 
-      const matchedGenres = genres.filter(g => sorteado.genre_ids.includes(g.id));
+      const matchedGenres = genres.filter((g) =>
+        sorteado.genre_ids.includes(g.id),
+      );
       setMovieGenres(matchedGenres);
-
     } catch (error) {
-      console.error('Erro:', error);
+      console.error(error);
+    } finally {
+      setIsFetching(false);
     }
   }
 
   function handleClick() {
     setCount((count) => count + 1);
-    getTrueRandomMovie();
+    sortearFilmePersonalizado({
+      minRating,
+      genreId,
+      yearMin,
+      yearMax,
+    });
+    // sortearFilme();
   }
 
   if (isLoading) return <p>Carregando site...</p>;
-
 
   return (
     <>
@@ -67,13 +136,25 @@ function App() {
         <div>
           <h1>Find your movie</h1>
           <p>
-            Não sabe o que assistir? Clique no botão abaixo e sorteie um filme aleatório entre os mais populares do momento! Com apenas um clique, descubra uma nova aventura cinematográfica para curtir.
+            Não sabe o que assistir? Clique no botão abaixo e sorteie um filme
+            aleatório entre os mais populares do momento! Com apenas um clique,
+            descubra uma nova aventura cinematográfica para curtir.
           </p>
         </div>
-        <button
-          className="counter"
-          onClick={handleClick}
-        >
+
+        <MovieFilters
+          genres={genres}
+          genreId={genreId}
+          setGenreId={setGenreId}
+          minRating={minRating}
+          setMinRating={setMinRating}
+          yearMin={yearMin}
+          setYearMin={setYearMin}
+          yearMax={yearMax}
+          setYearMax={setYearMax}
+        />
+
+        <button className="counter" onClick={handleClick} disabled={isFetching}>
           Sortear Filme
         </button>
       </section>
@@ -85,7 +166,7 @@ function App() {
           <h2>Histórico de Filmes Sorteados</h2>
           <div className="history-list flex gap-4 overflow-x-auto py-4 justify-center">
             {historyMovie.map((posterPath, index) => (
-              <img 
+              <img
                 key={index}
                 src={`${env.VITE_IMG_URL}${posterPath}`}
                 alt={`Pôster de ${movie?.title}`}
@@ -98,7 +179,7 @@ function App() {
 
       <div>Sorteios: {count}</div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
