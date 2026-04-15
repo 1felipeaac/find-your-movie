@@ -3,7 +3,7 @@ import { useState } from "react";
 import "./App.css";
 import type { Genre, Movie } from "./models";
 import { useGenres } from "./context/genre-context-data";
-import { descobertaDeFilmes } from "./services/tmdb";
+import { descobertaDeFilmes, getOndeAssistir, type ProviderProps } from "./services/tmdb";
 import { MovieCard } from "./components/movie-cards";
 import { env } from "./env";
 import { MovieFilters } from "./components/movie-filters";
@@ -35,6 +35,8 @@ function App() {
   const [minRating, setMinRating] = useState<number>(0);
   const [yearMin, setYearMin] = useState<number | "">("");
   const [yearMax, setYearMax] = useState<number | "">("");
+
+  const [providers, setProviders] = useState<{ streaming: ProviderProps[]; aluguel: ProviderProps[]; compra: ProviderProps[]; link: any } | null>(null)
 
   const { genres, isLoading } = useGenres();
 
@@ -90,8 +92,7 @@ function App() {
       );
       const sorteado = finalResponse.results[randomIndex];
 
-      setMovie(sorteado);
-
+  
       if (movie) {
         setHistoryMovie((prevHistory) => {
           const novaLista = [...prevHistory, movie.poster_path];
@@ -104,6 +105,10 @@ function App() {
       const matchedGenres = genres.filter((g) =>
         sorteado.genre_ids.includes(g.id),
       );
+
+      const providersResponse = await getOndeAssistir(sorteado.id);
+      setProviders(providersResponse)
+
       setMovieGenres(matchedGenres);
     } catch (error) {
       console.error(error);
@@ -159,7 +164,7 @@ function App() {
         </button>
       </section>
 
-      {movie && <MovieCard movie={movie} movieGenres={movieGenres} />}
+      {movie && <MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>}
 
       {historyMovie.length > 0 && (
         <section className="history">

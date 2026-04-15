@@ -15,6 +15,12 @@ export interface Payload{
   sort_by?: string;
 }
 
+export interface ProviderProps {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+}
+
 export const tmdb = axios.create({
     baseURL: VITE_BASE_URL,
     headers: {
@@ -53,4 +59,29 @@ export async function descobertaDeFilmes(params: Payload) : Promise<DiscoverResp
     } catch (error) {
       console.error('Error fetching discovered movies:', error)
     }
+}
+
+export async function getOndeAssistir(movieId: number) {
+  try {
+    const response = await tmdb.get(`/movie/${movieId}/watch/providers`, {
+      params: {api_key: env.VITE_API_KEY}
+    });
+    
+    const dadosBrasil = response.data.results.BR;
+
+    if (!dadosBrasil) {
+      return null;
+    }
+
+    return {
+      streaming: dadosBrasil.flatrate as ProviderProps[] || [],
+      aluguel: dadosBrasil.rent as ProviderProps[] || [],
+      compra: dadosBrasil.buy as ProviderProps[] || [],
+      link: dadosBrasil.link 
+    };
+
+  } catch (error) {
+    console.error("Erro ao buscar provedores:", error);
+    return null;
+  }
 }
