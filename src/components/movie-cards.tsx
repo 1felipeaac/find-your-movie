@@ -9,7 +9,7 @@ interface MovieCardProps {
     streaming: ProviderProps[];
     aluguel: ProviderProps[];
     compra: ProviderProps[];
-    link: any;
+    link: string;
   } | null;
 }
 
@@ -19,9 +19,9 @@ export function MovieCard({ movie, movieGenres, providers }: MovieCardProps) {
   return (
     <section
       id="movie-details"
-      className={`max-w-2xs mx-auto bg-slate-800 rounded-2xl shadow-xl overflow-hidden text-slate-100 transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+      className={`w-full max-w-sm mx-auto bg-slate-800 rounded-2xl shadow-xl overflow-hidden text-slate-100 transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl`}
     >
-      <div className="relative w-full max-w-xs bg-slate-900">
+      <div className="relative w-full bg-slate-900">
         <img
           src={`${env.VITE_IMG_URL}${movie.poster_path}`}
           alt={`Pôster de ${movie.title}`}

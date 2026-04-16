@@ -13,6 +13,8 @@ export interface Payload{
   'primary_release_date.gte'?: string;
   'primary_release_date.lte'?: string;
   sort_by?: string;
+  watch_region?: string;
+  with_watch_monetization_types?: string;
 }
 
 export interface ProviderProps {

@@ -5,8 +5,9 @@ import type { Genre, Movie } from "./models";
 import { useGenres } from "./context/genre-context-data";
 import { descobertaDeFilmes, getOndeAssistir, type ProviderProps } from "./services/tmdb";
 import { MovieCard } from "./components/movie-cards";
-import { env } from "./env";
 import { MovieFilters } from "./components/movie-filters";
+import { Moviehistory, type HistoryItem } from "./components/movie.history";
+import { ProvidersLink } from "./components/providers-link";
 
 interface MovieFiltersProps {
   minRating: number;
@@ -22,13 +23,15 @@ interface Payload {
   "primary_release_date.gte"?: string;
   "primary_release_date.lte"?: string;
   sort_by?: string;
+  watch_region?: string;
+  with_watch_monetization_types?: string;
 }
 
 function App() {
   const [count, setCount] = useState(0);
   const [movie, setMovie] = useState<Movie | undefined>(undefined);
   const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
-  const [historyMovie, setHistoryMovie] = useState<string[]>([]);
+  const [historyMovie, setHistoryMovie] = useState<HistoryItem[]>([]);
   const [isFetching, setIsFetching] = useState(false);
 
   const [genreId, setGenreId] = useState<number | "">("");
@@ -36,7 +39,12 @@ function App() {
   const [yearMin, setYearMin] = useState<number | "">("");
   const [yearMax, setYearMax] = useState<number | "">("");
 
-  const [providers, setProviders] = useState<{ streaming: ProviderProps[]; aluguel: ProviderProps[]; compra: ProviderProps[]; link: any } | null>(null)
+  const [providers, setProviders] = useState<{ 
+    streaming: ProviderProps[]; 
+    aluguel: ProviderProps[]; 
+    compra: ProviderProps[]; 
+    link: string 
+  } | null>(null)
 
   const { genres, isLoading } = useGenres();
 
@@ -47,6 +55,8 @@ function App() {
       const params: Payload = {
         page: 1,
         sort_by: "popularity.desc",
+        watch_region: "BR",
+        with_watch_monetization_types: "flatrate",
       };
 
       if (filtros.genreId) {
@@ -95,8 +105,15 @@ function App() {
   
       if (movie) {
         setHistoryMovie((prevHistory) => {
-          const novaLista = [...prevHistory, movie.poster_path];
-          return novaLista.slice(-3);
+          
+          const filmeAntigoParaSalvar = {
+            poster_path: movie.poster_path,
+            title: movie.title,
+            link: providers?.link 
+          };
+
+          const novaLista = [...prevHistory, filmeAntigoParaSalvar];
+          return novaLista.slice(-3); 
         });
       }
 
@@ -125,7 +142,6 @@ function App() {
       yearMin,
       yearMax,
     });
-    // sortearFilme();
   }
 
   if (isLoading) return <p>Carregando site...</p>;
@@ -138,7 +154,7 @@ function App() {
           <img src={reactLogo} className="framework" alt="React logo" />
           <img src={viteLogo} className="vite" alt="Vite logo" /> */}
         </div>
-        <div>
+        <div className={`w-full max-w-sm mx-auto`}>
           <h1>Find your movie</h1>
           <p>
             Não sabe o que assistir? Clique no botão abaixo e sorteie um filme
@@ -162,27 +178,17 @@ function App() {
         <button className="counter" onClick={handleClick} disabled={isFetching}>
           Sortear Filme
         </button>
+
+        <MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>
+
+        <Moviehistory historyMovie={historyMovie} />
+
+        <ProvidersLink providers={providers} />
+
       </section>
 
-      {movie && <MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>}
-
-      {historyMovie.length > 0 && (
-        <section className="history">
-          <h2>Histórico de Filmes Sorteados</h2>
-          <div className="history-list flex gap-4 overflow-x-auto py-4 justify-center">
-            {historyMovie.map((posterPath, index) => (
-              <img
-                key={index}
-                src={`${env.VITE_IMG_URL}${posterPath}`}
-                alt={`Pôster de ${movie?.title}`}
-                className="w-20 h-28 object-cover rounded-lg shadow-md"
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div>Sorteios: {count}</div>
+      <footer>Total Sorteados {count}</footer>
+     
     </>
   );
 }
