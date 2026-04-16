@@ -179,8 +179,7 @@ function App() {
           Sortear Filme
         </button>
 
-        <MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>
-
+        {movie &&<MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>}
         <Moviehistory historyMovie={historyMovie} />
 
         <ProvidersLink providers={providers} />

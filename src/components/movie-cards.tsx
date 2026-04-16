@@ -3,7 +3,7 @@ import type { Genre, Movie } from "../models";
 import type { ProviderProps } from "../services/tmdb";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: Movie | undefined;
   movieGenres: Genre[];
   providers?: {
     streaming: ProviderProps[];
