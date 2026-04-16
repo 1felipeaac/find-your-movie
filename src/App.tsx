@@ -3,11 +3,15 @@ import { useState } from "react";
 import "./App.css";
 import type { Genre, Movie } from "./models";
 import { useGenres } from "./context/genre-context-data";
-import { descobertaDeFilmes, getOndeAssistir, type ProviderProps } from "./services/tmdb";
+import {
+  descobertaDeFilmes,
+  getOndeAssistir,
+  type ProviderProps,
+} from "./services/tmdb";
 import { MovieCard } from "./components/movie-cards";
 import { MovieFilters } from "./components/movie-filters";
 import { Moviehistory, type HistoryItem } from "./components/movie.history";
-import { ProvidersLink } from "./components/providers-link";
+import Logo from "./assets/logo.svg?react";
 
 interface MovieFiltersProps {
   minRating: number;
@@ -39,12 +43,12 @@ function App() {
   const [yearMin, setYearMin] = useState<number | "">("");
   const [yearMax, setYearMax] = useState<number | "">("");
 
-  const [providers, setProviders] = useState<{ 
-    streaming: ProviderProps[]; 
-    aluguel: ProviderProps[]; 
-    compra: ProviderProps[]; 
-    link: string 
-  } | null>(null)
+  const [providers, setProviders] = useState<{
+    streaming: ProviderProps[];
+    aluguel: ProviderProps[];
+    compra: ProviderProps[];
+    link: string;
+  } | null>(null);
 
   const { genres, isLoading } = useGenres();
 
@@ -102,18 +106,16 @@ function App() {
       );
       const sorteado = finalResponse.results[randomIndex];
 
-  
       if (movie) {
         setHistoryMovie((prevHistory) => {
-          
           const filmeAntigoParaSalvar = {
             poster_path: movie.poster_path,
             title: movie.title,
-            link: providers?.link 
+            link: providers?.link,
           };
 
           const novaLista = [...prevHistory, filmeAntigoParaSalvar];
-          return novaLista.slice(-3); 
+          return novaLista.slice(-3);
         });
       }
 
@@ -124,7 +126,7 @@ function App() {
       );
 
       const providersResponse = await getOndeAssistir(sorteado.id);
-      setProviders(providersResponse)
+      setProviders(providersResponse);
 
       setMovieGenres(matchedGenres);
     } catch (error) {
@@ -149,18 +151,50 @@ function App() {
   return (
     <>
       <section id="center">
-        <div className="hero">
-          {/* <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" /> */}
-        </div>
+        <div className="hero"></div>
         <div className={`w-full max-w-sm mx-auto`}>
-          <h1>Find your movie</h1>
-          <p>
-            Não sabe o que assistir? Clique no botão abaixo e sorteie um filme
-            aleatório entre os mais populares do momento! Com apenas um clique,
-            descubra uma nova aventura cinematográfica para curtir.
-          </p>
+          <Logo className="w-full h-auto mb-4 bg-gray-500 rounded-2xl" />
+          <div className="flex flex-col gap-6 text-center max-w-2xl mx-auto mt-4 mb-8">
+            <ul className="flex flex-col gap-4 text-left bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 shadow-inner w-full max-w-lg mx-auto">
+              <li className="text-center">
+                <p className="text-lg text-slate-300 font-medium px-4">
+                  Cansado de procurar e não achar nada? Eu resolvo isso para
+                  você.
+                </p>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-2xl" aria-hidden="true">
+                  🍿
+                </span>
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                  <strong className="text-indigo-400 font-bold block mb-1">
+                    Do seu jeito:
+                  </strong>
+                  Filtre por gênero, ano de lançamento e nota ideal.
+                </p>
+              </li>
+
+              <li className="flex items-start gap-3">
+                <span className="text-2xl" aria-hidden="true">
+                  📺
+                </span>
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                  <strong className="text-indigo-400 font-bold block mb-1">
+                    Pronto para assistir:
+                  </strong>
+                  Só sorteamos filmes disponíveis nos melhores streamings do Brasil
+                  (Netflix, Prime, Disney, Max e mais).
+                </p>
+              </li>
+              <li className="text-center">
+                <p className="text-slate-400 text-sm md:text-base font-medium mt-2">
+                  Configure seus gostos abaixo, clique em{" "}
+                  <span className="text-slate-200 font-semibold">sortear</span>{" "}
+                  e deixe a mágica do cinema acontecer!
+                </p>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <MovieFilters
@@ -179,15 +213,17 @@ function App() {
           Sortear Filme
         </button>
 
-        {movie &&<MovieCard movie={movie} movieGenres={movieGenres} providers={providers}/>}
+        {movie && (
+          <MovieCard
+            movie={movie}
+            movieGenres={movieGenres}
+            providers={providers}
+          />
+        )}
         <Moviehistory historyMovie={historyMovie} />
-
-        <ProvidersLink providers={providers} />
-
       </section>
 
       <footer>Total Sorteados {count}</footer>
-     
     </>
   );
 }

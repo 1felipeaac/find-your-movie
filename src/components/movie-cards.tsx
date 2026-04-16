@@ -1,6 +1,7 @@
 import { env } from "../env";
 import type { Genre, Movie } from "../models";
 import type { ProviderProps } from "../services/tmdb";
+import { ExternalLink } from "./external-link";
 
 interface MovieCardProps {
   movie: Movie | undefined;
@@ -19,7 +20,9 @@ export function MovieCard({ movie, movieGenres, providers }: MovieCardProps) {
   return (
     <section
       id="movie-details"
-      className={`w-full max-w-sm mx-auto bg-slate-800 rounded-2xl shadow-xl overflow-hidden text-slate-100 transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+      className={`w-full max-w-sm mx-auto bg-slate-800 rounded-2xl shadow-xl 
+        overflow-hidden text-slate-100 transition-transform duration-300 
+        hover:scale-[1.02] hover:shadow-2xl`}
     >
       <div className="relative w-full bg-slate-900">
         <img
@@ -72,7 +75,7 @@ export function MovieCard({ movie, movieGenres, providers }: MovieCardProps) {
             <h3 className="text-sm font-medium text-slate-300 mb-2">
               Streaming:
             </h3>
-            <div className="flex gap-2">
+            <div className="flex gap-2 border-b border-slate-700 pb-4 mb-4 justify-center">
               {providers.streaming.map((plataforma) => (
                 <img
                   key={plataforma.provider_id}
@@ -83,6 +86,12 @@ export function MovieCard({ movie, movieGenres, providers }: MovieCardProps) {
                 />
               ))}
             </div>
+            <ExternalLink
+              link={providers.link}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              Ver mais detalhes no TMDB
+            </ExternalLink>
           </div>
         )}
       </div>
