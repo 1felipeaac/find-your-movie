@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import "./App.css";
 import type { Genre, Movie } from "./models";
@@ -12,6 +12,9 @@ import { MovieCard } from "./components/movie-cards";
 import { MovieFilters } from "./components/movie-filters";
 import { Moviehistory, type HistoryItem } from "./components/movie.history";
 import Logo from "./assets/logo.svg?react";
+import { AppPresentation } from "./components/app-presentation";
+import { handleDrawLimit } from "./utils";
+import { appFooter } from "./components/app-footer";
 
 interface MovieFiltersProps {
   minRating: number;
@@ -32,7 +35,6 @@ interface Payload {
 }
 
 function App() {
-  const [count, setCount] = useState(0);
   const [movie, setMovie] = useState<Movie | undefined>(undefined);
   const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
   const [historyMovie, setHistoryMovie] = useState<HistoryItem[]>([]);
@@ -42,6 +44,12 @@ function App() {
   const [minRating, setMinRating] = useState<number>(0);
   const [yearMin, setYearMin] = useState<number | "">("");
   const [yearMax, setYearMax] = useState<number | "">("");
+
+  const [limitMessage, setLimitMessage] = useState<string | null>(null);
+
+  const [cooldownTime, setCooldownTime] = useState<string | null>(null);
+
+  const timerRef = useRef<number | null>(null);
 
   const [providers, setProviders] = useState<{
     streaming: ProviderProps[];
@@ -137,7 +145,23 @@ function App() {
   }
 
   function handleClick() {
-    setCount((count) => count + 1);
+
+    const isAllowed = handleDrawLimit();
+
+    if (!isAllowed) {
+      setLimitMessage("Limite de 4 sorteios atingido! Volte mais tarde para sortear novos filmes.");
+  
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = setTimeout(() => {
+        setLimitMessage(null);
+      }, 5000);
+
+      return; 
+    }
+
     sortearFilmePersonalizado({
       minRating,
       genreId,
@@ -145,6 +169,47 @@ function App() {
       yearMax,
     });
   }
+
+  useEffect(() => {
+    const checkCooldown = () => {
+      const resetTime = Number(localStorage.getItem('fym_resetTime')) || 0;
+      const drawCount = Number(localStorage.getItem('fym_drawCount')) || 0;
+      const now = Date.now();
+
+      
+      if (drawCount >= 4 && now < resetTime) {
+        const tempoRestante = resetTime - now;
+        
+        const horas = Math.floor(tempoRestante / (1000 * 60 * 60));
+        const minutos = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+        const segundos = Math.floor((tempoRestante % (1000 * 60)) / 1000);
+
+
+        const hFormatado = horas.toString().padStart(2, '0');
+        const mFormatado = minutos.toString().padStart(2, '0');
+        const sFormatado = segundos.toString().padStart(2, '0');
+
+        setCooldownTime(`${hFormatado}h ${mFormatado}m ${sFormatado}s`);
+      } else {
+        
+        setCooldownTime(null);
+        
+        
+        if (drawCount >= 4 && now >= resetTime) {
+          localStorage.setItem('fym_drawCount', '0');
+        }
+      }
+    };
+
+    
+    checkCooldown();
+
+    
+    const intervalId = setInterval(checkCooldown, 1000);
+
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   if (isLoading) return <p>Carregando site...</p>;
 
@@ -155,45 +220,7 @@ function App() {
         <div className={`w-full max-w-sm mx-auto`}>
           <Logo className="w-full h-auto mb-4 bg-gray-500 rounded-2xl" />
           <div className="flex flex-col gap-6 text-center max-w-2xl mx-auto mt-4 mb-8">
-            <ul className="flex flex-col gap-4 text-left bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 shadow-inner w-full max-w-lg mx-auto">
-              <li className="text-center">
-                <p className="text-lg text-slate-300 font-medium px-4">
-                  Cansado de procurar e não achar nada? Eu resolvo isso para
-                  você.
-                </p>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl" aria-hidden="true">
-                  🍿
-                </span>
-                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-                  <strong className="text-indigo-400 font-bold block mb-1">
-                    Do seu jeito:
-                  </strong>
-                  Filtre por gênero, ano de lançamento e nota ideal.
-                </p>
-              </li>
-
-              <li className="flex items-start gap-3">
-                <span className="text-2xl" aria-hidden="true">
-                  📺
-                </span>
-                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-                  <strong className="text-indigo-400 font-bold block mb-1">
-                    Pronto para assistir:
-                  </strong>
-                  Só sorteamos filmes disponíveis nos melhores streamings do Brasil
-                  (Netflix, Prime, Disney, Max e mais).
-                </p>
-              </li>
-              <li className="text-center">
-                <p className="text-slate-400 text-sm md:text-base font-medium mt-2">
-                  Configure seus gostos abaixo, clique em{" "}
-                  <span className="text-slate-200 font-semibold">sortear</span>{" "}
-                  e deixe a mágica do cinema acontecer!
-                </p>
-              </li>
-            </ul>
+            <AppPresentation/>
           </div>
         </div>
 
@@ -209,9 +236,24 @@ function App() {
           setYearMax={setYearMax}
         />
 
-        <button className="counter" onClick={handleClick} disabled={isFetching}>
+        <button 
+          className="counter" 
+          onClick={handleClick} 
+          disabled={isFetching}
+        >
           Sortear Filme
         </button>
+
+        {limitMessage && (
+          <div className={`
+            mt-4 p-3 bg-red-500/10 border border-red-500/50 
+            text-red-400 text-sm font-medium 
+            rounded-lg text-center max-w-sm mx-auto 
+            shadow-lg animate-pulse`}
+          >
+            {limitMessage}
+          </div>
+        )}
 
         {movie && (
           <MovieCard
@@ -223,7 +265,8 @@ function App() {
         <Moviehistory historyMovie={historyMovie} />
       </section>
 
-      <footer>Total Sorteados {count}</footer>
+      {cooldownTime !== null && appFooter(cooldownTime)}
+
     </>
   );
 }

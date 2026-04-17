@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 220">
+  <defs>
+    <style> .blue { fill: #21195F; }
+      .gray { fill: #39393d; }
+      .film-dash { fill: none;
+      stroke:#d5e2f2;
+      stroke-width: 5;
+      stroke-linecap: round;
+      }
+      .blade {
+      fill:#d5e2f2;
+      }
+      .text-main {
+      fill: #21195F; font-family: Arial, Helvetica, sans-serif; font-size: 64px; font-weight: 700;
+      letter-spacing: 1px; } .text-sub { fill: #21195F; font-family: Arial, Helvetica, sans-serif;
+      font-size: 22px; font-weight: 500; letter-spacing: 2px; } </style>
+  </defs>
+
+  <!-- Ícone -->
+  <g transform="translate(40,30)">
+
+    <!-- Aro da lupa -->
+    <circle cx="70" cy="70" r="60" class="blue" />
+
+
+    <circle cx="70" cy="70" r="45" class="gray" />
+
+    <!-- Traço externo -->
+    <!-- <circle cx="70" cy="70" r="45" class="film-dash" /> -->
+
+    <!-- Obturador -->
+    <g transform="translate(70,70) scale(1.5)">
+      <g class="blade">
+
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(0)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(45)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(90)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(135)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(180)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(225)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(270)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(315)" />
+        <path d="M5,-25 Q8,-28 12,-23 L18,-12 L6,1 Z" transform="rotate(360)" />
+      </g>
+    </g>
+
+    <!-- Miolo -->
+    <!-- <circle cx="70" cy="70" r="5" class="gray" /> -->
+
+    <!-- Cabo -->
+    <g transform="rotate(45 100 120)">
+      <rect x="90" y="95" width="55" height="20" rx="8" class="blue" />
+    </g>
+  </g>
+
+  <!-- Texto -->
+  <g transform="translate(220,85)">
+    <text x="0" y="30" class="text-main">FIND YOUR MOVIE</text>
+    <text x="3" y="58" class="text-sub">SEU FILME ESTÁ AQUI</text>
+  </g>
+</svg>
